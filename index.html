@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>React PHP: The NodeJS Challenger</title>
+
+    <meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+    <meta name="author" content="Hakim El Hattab">
+
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="css/reveal.min.css">
+    <link rel="stylesheet" href="css/theme/night.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <style type="text/css">
+        .reveal pre {
+            line-height: inherit;
+            margin: 0;
+            zoom: 1;
+            width: 100%;
+        }
+
+        .reveal pre code {
+            line-height: 1.2em;
+            max-height: inherit;
+            font-size: 40px;
+            padding: 0 30px;
+        }
+
+        .reveal table th, .reveal table td {
+          padding-right: 4.3em;
+        }
+
+        .reveal h2 {
+          line-height: 1.4em;
+        }
+
+        .reveal h1 {
+          line-height: 1.2em;
+        }
+    </style>
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+        if (window.location.search.match(/print-pdf/gi)) {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = 'css/print/pdf.css';
+            document.getElementsByTagName('head')[0].appendChild(link);
+        }
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<div class="reveal">
+
+<!-- Any section element inside of this container is displayed as a slide -->
+<div class="slides" style="width: 100%; zoom: 1">
+
+<!-- TEASER -->
+<section>
+    <h1>REACT PHP</h1>
+    <h2>The NodeJS Challenger</h2>
+    <br><br>
+    <h3 style="text-transform: none">LUKE KYSOW</h3>
+    <h4 style="text-transform: none">Software Engineer @Hootsuite</h4>
+    <h4 style="text-transform: none">Find me on Twitter @lkysow</h4>
+</section>
+
+
+<section>
+    <h1>What is React PHP?</h1>
+    <br><br><br>
+    <h3 class="fragment">Written by Igor Wiedler &bull; @igorwhiletrue</h3>
+    <aside class="notes">
+        - low level PHP library for event-driven, non-blocking I/O programming
+        - written by Igor Wiedler
+    </aside>
+</section>
+
+<section>
+    <pre>
+        <code style="padding: 0 10px">
+$loop = React\EventLoop\Factory::create();
+$socket = new React\Socket\Server($loop);
+$http = new React\Http\Server($socket, $loop);
+
+$http->on('request', function ($req, $rep) {
+    $rep->writeHead();
+    $rep->end("Hello World!\n");
+});
+
+$socket->listen(8000);
+$loop->run();
+        </code>
+    </pre>
+
+    <aside class="notes">
+        <ul>
+            <li>Example of React Code</li>
+            <li>We'll get into what exactly this is doing later in the presentation</li>
+        </ul>
+    </aside>
+</section>
+
+<!-- WHY? -->
+<section>
+    <h1>What Does PHP Suck At?</h1>
+</section>
+
+<section>
+    <h2>C10K Problem</h2>
+    <aside class="notes">
+        <ul>
+            <li>Dan Kegel in 2001</li>
+            <li>Given current hardware, a web server should be able to handle over 10,000 connections per second, sending each connection 4KB</li>
+            <li>PHP sucks because it runs one process per request/connection. Would need 10,000 processes running.</li>
+        </ul>
+    </aside>
+</section>
+
+<section>
+    <h2>Websockets</h2>
+    <aside class="notes">
+        <ul>
+            <li>Persistent connection between browser and web server. Server can push data.</li>
+            <li>Example: chat client in browser</li>
+            <li>Again, PHP sucks because it needs one process per request. As clients grew, would need more and more processes</li>
+        </ul>
+    </aside>
+</section>
+
+<section>
+    <h2>Making lots of concurrent requests (ex. Web Scraping)</h2>
+    <aside class="notes">
+        <ul>
+            <li>I have a set of 1000 webpages that I want to crawl and grab all the links from.</li>
+            <li>PHP sucks because it blocks while waiting for the response to come back.</li>
+        </ul>
+    </aside>
+</section>
+
+<section>
+    <h2>Speed</h2>
+    <aside class="notes">
+        <ul>
+            <li>Every time we serve a request we have to create a process, declare classes, instantiate objects, read caches</li>
+        </ul>
+    </aside>
+</section>
+
+<section>
+    <h1>Why does PHP suck at solving these problems?</h1>
+    <aside class="notes">
+        <ul>
+            <li>One Process Per Request</li>
+            <li>Blocking I/O. WHAT IS BLOCKING I/O?</li>
+        </ul>
+    </aside>
+</section>
+
+<section>
+    <h1>Why is NodeJS good at solving these problems?</h1>
+    <aside class="notes">
+        <ul>
+            <li>One Process for all requests. Just more to do as requests come in.</li>
+            <li>Non-blocking I/O. Can service other requests while waiting for I/O</li>
+        </ul>
+    </aside>
+</section>
+
+<section data-markdown>
+    <script type="text/template">
+        ## A typical web request
+
+        ```php
+        <?php
+
+        $request = $this->getRequest();
+        $param = $request->getParameter('param');
+
+        // these calls block
+        $apiResponse = $api->getSomething($param);
+        $dbResponse = $database->doSomething($param);
+
+        return new Response($apiResponse, $dbResponse);
+        ```
+
+    </script>
+    <aside class="notes">
+        <ul>
+          <li>This is what blocking I/O looks like</li>
+        </ul>
+    </aside>
+</section>
+
+<section>
+  <h2>Latency Numbers Every Programmer Should Know</h2>
+
+  <table style="font-size: 36px; line-height: 52px;">
+    <tr><td>L1 cache reference</td>                           <td>0.5 ns</td></tr>
+    <tr><td>L2 cache reference</td>                           <td>7   ns</td></tr>
+    <tr><td>Main memory reference</td>                      <td>100   ns</td></tr>
+    <tr><td>Send 1K bytes over 1 Gbps network</td>       <td>10,000   ns</td></tr>
+    <tr><td>Read 1 MB sequentially from memory</td>     <td>250,000   ns</td></tr>
+    <tr><td>Round trip within same datacenter</td>      <td>500,000   ns</td></tr>
+    <tr><td>Read 1 MB sequentially from SSD</td>      <td>1,000,000   ns</td></tr>
+    <tr><td>Read 1 MB sequentially from disk</td>    <td>20,000,000   ns</td></tr>
+    <tr><td>Round trip from US to Europe</td>       <td>150,000,000   ns</td></tr>
+  </table>
+
+  <p><small><a href="https://gist.github.com/jboner/2841832">https://gist.github.com/jboner/2841832</a></small></p>
+    <aside class="notes">
+        <ul>
+          <li>Average CPU instruction takes 1ns</li>
+        </ul>
+    </aside>
+</section>
+
+<section data-markdown>
+    <script type="text/template">
+        ## A typical web request
+
+        ```php
+        <?php
+
+        $request = $this->getRequest(); // 1ns
+        $param = $request->getParameter('param'); // 1ns
+
+        // 100,000,000 ns
+        $apiResponse = $api->getSomething($param);
+        // 500,000 ns
+        $dbResponse = $database->doSomething($param);
+
+        // 1ns
+        return new Response($apiResponse, $dbResponse);
+        ```
+
+    </script>
+</section>
+
+<section>
+  <h1>Solution:</h1>
+  <br><br><br>
+  <h2 class="fragment fade-out" data-fragment-index="1">(╯°□°）╯︵ ┻━┻</h2>
+  <h2 class="fragment fade-in" data-fragment-index="1">Implement Non-Blocking I/O and Event Loops in PHP!</h2>
+</section>
+
+<section>
+  <h2>Aside: Streams</h2>
+  <pre class="fragment"><code class="php">
+$filePointer = fopen("http://google.com", "rb");
+
+echo stream_get_contents($filePointer, 25);
+// "&lt;!doctype html&gt;&lt;html item"
+
+echo stream_get_contents($filePointer, 25);
+// "scope="" itemtype="http:/"
+
+  </code></pre>
+  <aside class="notes">
+    <ul>
+      <li>Sequence of data elements that can be read/written</li>
+    </ul>
+  </aside>
+</section>
+
+<section>
+  <h2>Aside: Streams</h2>
+  <pre><code class="php">
+$filePointer = fopen("file:///tmp/test", "w");
+
+fwrite($filePointer,
+    "Actual React code coming soon");
+  </code></pre>
+</section>
+
+<section data-markdown>
+  <script type="text/template">
+    ## Convert this...
+
+    ```php
+    <?php
+
+    $request = $this->getRequest();
+    $param = $request->getParameter('param');
+
+    // these calls block
+    $apiResponse = $api->getSomething($param);
+    $dbResponse = $database->doSomething($param);
+
+    return new Response($apiResponse, $dbResponse);
+    ```
+
+  </script>
+  <aside class="notes">
+    <ul>
+      <li>This is what blocking I/O looks like</li>
+    </ul>
+  </aside>
+</section>
+
+<section>
+  <pre>
+<code class="php">
+// get requests as streams
+$apiStream = $api->getStream($param);
+$dbStream = $database->getStream($param);
+
+// still blocks
+list($apiResp, $dbResp) =
+  $this->retrieveData($apiStream, $dbStream);
+
+return new Response($apiResp, $dbResp);
+</code>
+  </pre>
+</section>
+
+<section>
+  <pre>
+<code class="php">
+  $apiStream = $api->getStream($param);
+  $dbStream = $database->getStream($param);
+
+  // return asynchronously
+  $this->retrieveStreams($apiStream, $dbStream)
+    ->on('streamsReady',
+
+      function($apiResp, $dbResp) {
+        return new Response($apiResp, $dbResp);
+      }
+  );
+
+</code>
+  </pre>
+  <aside class="notes">
+    How do we know when the stream is ready?
+  </aside>
+</section>
+
+<section>
+    <h2>stream_select</h2>
+    <img src="stream-select.png" style="width: 94%">
+</section>
+
+<section>
+  <pre>
+<code>
+$filePointer = fopen("http://google.com", "rb");
+$readable = [$filePointer];
+$write = []; $exc = []; $t = 5;
+
+if (stream_select($readable, $write, $exc, $t)) {
+  if ($readable) {
+    $googleStream = $readable[0];
+    echo stream_get_contents($googleStream, 25);
+    // echoes &lt;!doctype html&gt;&lt;html item
+  }
+}
+
+</code>
+  </pre>
+  <aside class="notes">
+    <ul>
+      <li>Now we have a way to run asynchronously, but what do we do while we're waiting? And how do we go back and check if the streams are ready?</li>
+    </ul>
+  </aside>
+</section>
+
+<section>
+    <h2>What do we yield control to?</h2>
+</section>
+
+
+<section data-markdown>
+    <script type="text/template">
+        ## An Event Loop
+        ```php
+        <?php
+
+        while (true) {
+            $event = $this->getNextEvent();
+            $event->process();
+        }
+        ```
+    </script>
+    <aside class="notes">
+        No magic here, an event loop is just a loop we run in and process events as they come in.
+    </aside>
+</section>
+
+<section>
+    <pre>
+<code class="php">
+while (true) {
+  if (stream_select($read, $write, $exc, 1)) {
+    if ($read) {
+     foreach ($readable as $stream) {
+       // run callback for that stream
+      }
+    }
+    if ($write) {
+      foreach ($writable as $stream) {
+        // run callback for that stream
+      }}
+  }
+}
+</code>
+    </pre>
+</section>
+
+<section>
+  <h1>Non Blocking I/O + Event Loops</h1>
+  <h1>== Awesome</h1>
+</section>
+
+<!-- REACT PHP -->
+
+<section data-markdown>
+    <script type="text/template">
+        # == React PHP
+    </script>
+    <aside class="notes">
+        Now let's look at some react code
+    </aside>
+</section>
+
+<section>
+    <pre><code>
+$loop = React\EventLoop\Factory::create();
+$socket = new React\Socket\Server($loop);
+
+$socket->on('connection', function ($conn) {
+  $conn->write("Hello there!\n");
+  $conn->write("Don't say anything...\n");
+
+  $conn->on('data',
+    function ($data) use ($conn) {
+      $conn->close();
+    });
+});
+$socket->listen(1337);
+$loop->run()
+        </code></pre>
+    <aside class="notes">
+        Note that we need to handle the entire HTTP request/response cycles ourselves. We're not fronted by Nginx or apache because
+        TODO: why
+    </aside>
+</section>
+
+
+<section data-markdown>
+    <script type="text/template">
+        ```php
+        $loop = React\EventLoop\Factory::create();
+        $socket = new React\Socket\Server($loop);
+        $http = new React\Http\Server($socket);
+
+        $http->on('request',
+          function ($request, $response) {
+            echo "I see a client!\n";
+            $response->writeHead(200,
+               ['Content-Type' => 'text/plain']);
+            $response->end("Hello World!\n");
+        });
+
+        $socket->listen(1337);
+        $loop->run();
+        ```
+    </script>
+    <aside class="notes">
+        Simple HTTP Server
+    </aside>
+</section>
+
+
+<section data-markdown>
+    <script type="text/template">
+        ## Pipes
+        ```
+$loop = React\EventLoop\Factory::create();
+$socket = new React\Socket\Server($loop);
+
+$socket->on('connection', function ($conn) {
+    $conn->pipe($conn);
+  }
+);
+
+$socket->listen(1337);
+$loop->run();
+        ```
+    </script>
+</section>
+
+
+<section>
+  <pre>
+    <code>
+$waiting = null;
+$socket->on('connection',
+  function ($conn) use (&$waiting) {
+  if (null === $waiting) {
+    $waiting = $conn;
+    $conn->write("Wait for a partner.\n");
+  } else {
+    $conn->write("Connected!");
+    $waiting->write("Connected!");
+
+    $conn->pipe($waiting)->pipe($conn);
+    $waiting = null;
+  }});
+    </code>
+  </pre>
+</section>
+
+
+<section>
+    <h2>React Projects</h2>
+    <ul>
+        <li><a target="_blank" href="http://reactphp.org/">React In The Industry</a></li>
+        <li><a target="_blank" href="http://philsturgeon.uk/blog/2013/11/benchmarking-codswallop-nodejs-v-php">Web Scraping with React</a></li>
+    </ul>
+</section>
+
+<section>
+    <h2>High Performance Symfony</h2>
+    <p>
+        TL;DR: You'll get with this approach almost 2.000 requests/s instead of 130 on a large Symfony app.
+    </p>
+    <br><br>
+    <blockquote cite="http://marcjschmidt.de/blog/2014/02/08/php-high-performance.html">
+        Even if you have an "opcode cache" you have to declare classes, instantiate your objects, read your caches, etc for every single request. As you can surely imagine this is very time consuming and far away from being a perfect setup for high performance.
+    </blockquote>
+    <small><a target="_blank" href="http://marcjschmidt.de/blog/2014/02/08/php-high-performance.html">http://marcjschmidt.de/blog/2014/02/08/php-high-performance.html</a></small>
+</section>
+
+<section>
+  <h1>Is React PHP a NodeJS Challenger?</h1>
+</section>
+
+<section>
+  <h1>NO</h1>
+</section>
+
+<section>
+    <h1>Fin</h1>
+    <br><br><br><br>
+    <h3>Luke Kysow &bull; @lkysow</h3>
+    <br>
+    <h4>Please give me your feedback! http://tiny.cc/reactphp</h4>
+</section>
+
+
+
+<!--<section>-->
+    <!--<pre>-->
+        <!--<code>-->
+<!--$request = $this->getRequest();-->
+<!--$param = $request->getParameter('param');-->
+
+<!--$api->getSomething($param, function($apiResponse) {-->
+
+   <!--$database->doSomething($param, function($databaseResponse) {-->
+
+      <!--$foo->bar($var, function($input) {-->
+
+         <!--return $baz->boo($input);-->
+      <!--}-->
+   <!--})-->
+<!--});-->
+        <!--</code>-->
+    <!--</pre>-->
+    <!--<h3>JavaScript Developers have a name for this callback nesting</h3>-->
+<!--</section>-->
+
+<!--<section>-->
+    <!--<h1>Callback Hell</h1>-->
+<!--</section>-->
+
+<!--<section><h1>Promises To The Rescue</h1></section>-->
+<!--<section data-markdown>-->
+    <!--<script type="text/template">-->
+        <!--```php-->
+        <!--<?php-->
+
+<!--$request = $this->getRequest();-->
+<!--$param = $request->getParameter('param');-->
+
+<!--/** @var React\Promise\Deferred $apiPromise */-->
+<!--$apiPromise = $api->getSomething();-->
+
+<!--/** @var React\Promise\Deferred $dbPromise */-->
+<!--$dbPromise = $db->doSomething();-->
+
+<!--$allCalls = React\Promise\All([$apiPromise, $dbPromise]);-->
+
+<!--return $allCalls->then(-->
+
+    <!--function ($calls) {-->
+       <!--list($apiResponse, $dbResponse) = $calls;-->
+
+       <!--return new Response($apiResponse, $dbResponse);-->
+    <!--}-->
+<!--);-->
+<!--```-->
+    <!--</script>-->
+<!--</section>-->
+
+</div>
+
+</div>
+
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.min.js"></script>
+
+<script>
+
+    // Full list of configuration options available here:
+    // https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        width: "100%",
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+        backgroundTransition: 'slide',
+
+        // Parallax scrolling
+        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+        // parallaxBackgroundSize: '2100px 900px',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+            { src: 'lib/js/classList.js', condition: function () {
+                return !document.body.classList;
+            } },
+            { src: 'plugin/markdown/marked.js', condition: function () {
+                return !!document.querySelector('[data-markdown]');
+            } },
+            { src: 'plugin/markdown/markdown.js', condition: function () {
+                return !!document.querySelector('[data-markdown]');
+            } },
+            { src: 'plugin/highlight/highlight.js', async: true, callback: function () {
+                hljs.initHighlightingOnLoad();
+            } },
+            { src: 'plugin/zoom-js/zoom.js', async: true, condition: function () {
+                return !!document.body.classList;
+            } },
+            { src: 'plugin/notes/notes.js', async: true, condition: function () {
+                return !!document.body.classList;
+            } }
+        ]
+    });
+
+</script>
+</body>
+</html>
