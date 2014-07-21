@@ -46,6 +46,10 @@
         .reveal h1 {
           line-height: 1.2em;
         }
+
+        section.list li {
+          margin-bottom: 20px;
+        }
     </style>
 
     <!-- If the query includes 'print-pdf', include the PDF print sheet -->
@@ -376,7 +380,7 @@ if (stream_select($readable, $write, $exc, $t)) {
   </pre>
   <aside class="notes">
     <ul>
-      <li>Now we have a way to run asynchronously, but what do we do while we're waiting? And how do we go back and check if the streams are ready?</li>
+      <li>Now we have a way to run asynchronously, but what do we do while we're waiting?</li>
     </ul>
   </aside>
 </section>
@@ -462,6 +466,18 @@ $loop->run()
     </aside>
 </section>
 
+<!--<section class="list" data-markdown style="font-size: 40px">-->
+  <!--<script type="text/template">-->
+    <!--1. Create a readable stream using `stream_socket_server("tcp://localhost:1337")`-->
+    <!--2. Add stream to list of `$readable` streams-->
+    <!--3. Wait for `stream_select($readable, ...)`-->
+    <!--4. When it triggers on a connection get the stream to the specific client using `$conn = stream_socket_accept($socket)`-->
+    <!--4. Call the `'connect'` callback with the new `$conn`-->
+    <!--5. Send the welcome message into the stream-->
+    <!--6. Add `$conn` to the list of `$readable` streams (separate from the server)-->
+    <!--7. When `$conn` has data call the `'data'` callback which closes the connection-->
+  <!--</script>-->
+<!--</section>-->
 
 <section data-markdown>
     <script type="text/template">
